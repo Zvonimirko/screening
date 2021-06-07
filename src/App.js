@@ -1,23 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Login from "./components/login/Login";
+import UserData from "./components/userData/UserData";
+import setAuthToken from "./utilities/setAuthToken";
+
+import "./App.scss";
 
 function App() {
+  const [user, updateUser] = useState(null);
+
+  const checkAuth = async () => {
+    setAuthToken(localStorage.token);
+
+    try {
+      const res = await axios.get(
+        "https://api.getcountapp.com/api/v1/users/me"
+      );
+      const { firstName, lastName } = res.data;
+      updateUser({
+        firstName: firstName,
+        lastName: lastName,
+      });
+    } catch (err) {
+      console.log(err.response.status);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth(localStorage.token);
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!user && <Login updateUser={(data) => updateUser(data)} />}
+      {user && <UserData user={user} updateUser={updateUser} />}
     </div>
   );
 }
